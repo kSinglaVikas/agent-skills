@@ -51,6 +51,12 @@ skills:
     last_reviewed: 2026-04-29
     review_cadence_days: 90
 
+  - name: mongodb-production-notes
+    dris:
+      - aktasch
+    last_reviewed: 2026-09-25
+    review_cadence_days: 90
+
   - name: mongodb-query-optimizer
     dris:
       - davidjahn
