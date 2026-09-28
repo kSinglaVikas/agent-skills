@@ -1,8 +1,10 @@
 # Quick Start
 
-**Scope**: This guide is a step-by-step walkthrough that demonstrates semantic search (using Automated Embedding), keyword search (using MongoDB Search), and hybrid search against the `sample_mflix` sample dataset in the user's cluster. Use it when the user wants a guided tour of MongoDB Search and Vector Search — it prescribes an exact interaction sequence, index names, and queries. For the underlying reference material behind each step, see `automated-embedding.md`, `vector-search.md`, `lexical-search-indexing.md`, `lexical-search-querying.md`, and `hybrid-search.md`.
+**Scope**: This guide is a step-by-step walkthrough that demonstrates semantic search (using Automated Embedding), keyword search (using MongoDB Search), and hybrid search against the `sample_mflix` sample dataset in the user's cluster. It prescribes an exact interaction sequence, index names, and queries. For the underlying reference material behind each step, see `automated-embedding.md`, `vector-search.md`, `lexical-search-indexing.md`, `lexical-search-querying.md`, and `hybrid-search.md`.
 
-**This walkthrough requires an Atlas cloud cluster.** Every step assumes one: the sample dataset is loaded from the Atlas UI, and Automated Embedding is available on every Atlas tier with no key management. Atlas Local is deliberately out of scope — it loads sample data at `atlas local setup` time instead, and `autoEmbed` there needs the preview image plus a user-supplied Voyage AI key — as is generic self-managed MongoDB, which additionally needs its own MongoDB version and `mongot`. Step 0 detects both and routes them out of this walkthrough rather than partway through it.
+**Only run this once the user has chosen the sample-data tour.** It teaches how search works on a fixed dataset; it does not build search for the user's own collections. If you arrived here from a general request like "I'm new to search, help me get started" without the user picking the tour over working on their own data, go back to `SKILL.md` Step 0 and offer that choice first.
+
+**This walkthrough requires an Atlas cloud cluster.** The sample dataset loads from the Atlas UI, and Automated Embedding works on every Atlas tier with no key management. Atlas Local and self-managed MongoDB are out of scope — Step 0.2 covers how they get detected and routed out.
 
 ## Table of Contents
 
@@ -28,7 +30,7 @@ Every step follows the same rhythm:
 
 Never ask the user to decide something they haven't seen yet.
 
-**Never end a turn without the next step.** Every turn closes with an AskUserQuestion or a completed action. Explaining a result and stopping is a dead end — the user is following, not driving, and has no way to know what comes next. If a step contains a question, ask it in the same turn as the explanation. Drive the step sequence to the end; the only valid stopping points are the user choosing to stop, or Wrap Up.
+**Never end a turn without the next step.** Every turn closes with an AskUserQuestion or a completed action, and a step's question goes in the same turn as its explanation. The only valid stopping points are the user choosing to stop, or Wrap Up.
 
 ## Step 0 — Check Connection and Deployment
 
@@ -40,29 +42,21 @@ Never ask the user to decide something they haven't seen yet.
 
   Do not continue until `list-databases` succeeds.
 
-**0.2 — Confirm the cluster is on Atlas cloud (silent, best-effort).** Establish that before Step 1 spends the user's time.
+**0.2 — Assume Atlas cloud and continue (silent).** Do **not** ask the user what kind of deployment they have. Same principle as Step 3a: never block a beginner on a question they can't answer, and let a real operation produce the answer instead.
 
-- Attempt `atlas-inspect-cluster`. If it **succeeds**, the cluster is on Atlas cloud — proceed silently to Step 1.
-- If it fails, the result is ambiguous: the tool also fails when no Atlas Admin API key is configured, which is common and expected. Do not conclude from this alone. Run `run-command` with `{ hello: 1 }` and check the reported hosts — Atlas cloud hosts end in `.mongodb.net`.
-- Check for Atlas Local before concluding: if `atlas-local-list-deployments` is available and reports a running deployment, or the `hello` hosts resolve to `localhost`/`127.0.0.1`, treat it as **Atlas Local**, which this walkthrough does not support.
-- If it is still ambiguous, ask with AskUserQuestion:
-  > "Quick check before we start: is this cluster on MongoDB Atlas at cloud.mongodb.com, is it Atlas Local in Docker, or is it a self-managed MongoDB you run yourself?"
+- **Default to Atlas cloud** and proceed silently to Step 1. It is the overwhelmingly common case, and it is the case this walkthrough is written for.
+- **Opportunistic confirmation only.** If `atlas-local-list-deployments` is available *and* reports a running deployment you are connected to, that is positive evidence of **Atlas Local** — route out using the message below. That tool ships only with the local MCP server, so on most setups it will not exist; its absence proves nothing. Likewise, `atlas-inspect-cluster` succeeding confirms Atlas cloud, but its failure proves nothing — it is unregistered whenever the server has only a connection string and no Atlas API service account.
+- **Do not attempt any other deployment probe.** The MongoDB MCP server exposes no tool that returns cluster hostnames or raw command output, so there is no other silent signal available.
 
-**If it is on Atlas cloud:** proceed silently to Step 1. Do not mention the check.
+**Where non-Atlas deployments actually get caught:** Step 1 cannot find or load `sample_mflix`, or Step 4a's `autoEmbed` index build fails. Both are real evidence. Use the routing message below at that point.
 
-**If it is Atlas Local:** do not start the walkthrough, and do not suggest starting a local deployment — they already have one. Tell the user:
-> "This guided walkthrough is built for an Atlas cloud cluster: it loads the sample movie dataset from the Atlas UI, and Automated Embedding there needs no key or version setup. On Atlas Local both of those differ, so the tour would break partway through. Two options:
+**If there is real evidence of Atlas Local or self-managed MongoDB:** stop the walkthrough. Do not suggest starting a local deployment — they are already running MongoDB somewhere. Tell the user:
+> "This guided walkthrough is only available for a cluster with the sample movies dataset on Atlas. Two options:
 >
 > 1. **Connect to a free Atlas cluster** (M0, no card required), load the sample dataset, and we'll run this tour end to end.
-> 2. **Skip the tour and build search on your local deployment here.** I have the full reference material — tell me what you want to search and I'll design the index and queries against your actual collections."
+> 2. **Skip the tour and build search on your own data here.** Tell me what you want to search and I'll design the index and queries against your actual collections."
 
-**If it is self-managed:** do not start the walkthrough. Tell the user:
-> "This guided walkthrough is built for an Atlas cloud cluster — it loads the sample movie dataset from the Atlas UI and uses Automated Embedding. Rather than have it break halfway, here are two better options:
->
-> 1. **Spin up a free Atlas cluster** (M0, no card required), load the sample dataset, and we'll run this tour end to end.
-> 2. **Skip the tour and build search on your own data here.** I have the full reference material — tell me what you want to search and I'll design the index and queries against your actual collections."
-
-In both cases use AskUserQuestion with those two options. If they pick 1, wait for the Atlas cloud connection and restart at Step 0. If they pick 2, leave this walkthrough and use the main skill workflow in `SKILL.md`; without Voyage AI keys configured, semantic search there means manual embeddings (`vector-search.md`), not `autoEmbed`.
+Use AskUserQuestion with those two options. If they pick 1, wait for the Atlas cloud connection and restart at Step 0. If they pick 2, leave this walkthrough and use the main skill workflow in `SKILL.md`; without Voyage AI keys configured, semantic search there means manual embeddings (`vector-search.md`), not `autoEmbed`.
 
 ## Step 1 — Load Sample Data
 
@@ -76,22 +70,17 @@ Wait for confirmation, then re-run `list-databases` to verify `sample_mflix` now
 
 Repeat until `sample_mflix` is confirmed present before continuing.
 
+**If the user reports there is no Load Sample Dataset option**, that is the real evidence Step 0.2 was waiting for: the deployment is not Atlas cloud. Stop here and use the routing message in Step 0.2. Do not ask which kind of non-Atlas deployment it is — the routing message is the same either way.
+
 **For everyone (whether dataset was just loaded or already present):**
 
-Use `collection-schema` on `sample_mflix.movies` and tell the user:
-> "Here's what your data looks like — each document is a movie with a title, plot description, and genre. These are the fields we'll make searchable."
-
-Show a condensed example document (title, plot, genres fields only).
-
-
-**Explain:**
-- This is a real dataset of ~21,000 movies already in your cluster
-- Each document = one movie
-- We're using sample data — this is the same structure you'd use for your own content
+Use `collection-schema` on `sample_mflix.movies`, show a condensed example document (`title`, `plot`, `genres` only), and tell the user this is a real dataset of ~21,000 movies already on their cluster, one document per movie, with `title`, `plot`, and `genres` being the fields the walkthrough makes searchable — the same structure they would use for their own content.
 
 ## Step 2 — Choose Your Path
 
-Use AskUserQuestion to ask:
+**Skip this step if the user already named a search type** when they asked ("I want to try vector search", "show me keyword search") — go straight to Path A, Path B, or, for hybrid, Path A followed by Path C. Do not re-ask a question they already answered. Skip only this question: Step 0's connection check and Step 1's `sample_mflix` check still have to pass before any path starts.
+
+Otherwise use AskUserQuestion to ask:
 
 > "What kind of search do you want to try?"
 
@@ -161,7 +150,7 @@ Before creating anything, explain the value and cost:
 > - After that, voyage-4 costs **$0.06 per million tokens**
 > - For reference: ~21,000 movie plots is roughly 5–10M tokens total for the initial sync
 >
-> **If you're on M0:** Once your 200M free tokens are exhausted, MongoDB automatically invoices you for additional usage — index builds and queries don't stop. You can add a payment method to your Atlas account without upgrading your cluster (Atlas → Billing → Payment Method). Charges are only for embedding model usage. This quickstart uses ~5–10M of your 200M free tokens, so you're well within the free allocation here.
+> **If you're on M0:** Once your 200M free tokens are exhausted, MongoDB automatically invoices you for additional usage — index builds and queries don't stop. You can add a payment method to your Atlas account without upgrading your cluster (Atlas → Billing → Payment Method). Charges are only for embedding model usage.
 >
 > **Two more things worth knowing before you commit:**
 > - **Where the embedding happens.** The embedding model runs on inference infrastructure that MongoDB operates — a multi-tenant service on Google Cloud in a **US region** — *regardless of which cloud provider or region your cluster is in*. Your text is sent there to be embedded. **Data transfer costs apply** on top of the token costs above. If you have data-residency requirements, this is the detail to check first.
@@ -226,18 +215,7 @@ Display results in a clean table: Title | Score | Plot (truncated to ~100 chars)
 **Explain to the user:**
 > "None of those movie titles or plots contain the words 'growing up' — but MongoDB found them anyway. That's semantic search: it matched the **meaning** of your query, not the words. The score shows how similar each result is to what you asked for — closer to 1.0 means more similar."
 
-Then show the query syntax as a reveal:
-> "Here's what that query looks like under the hood:
-> ```javascript
-> $vectorSearch: {
->   index: "quickstart_semantic",
->   path: "plot",
->   query: "a story about growing up",  // plain text — no vectors needed
->   numCandidates: 100,
->   limit: 3
-> }
-> ```
-> Notice `query` is just a text string. With auto embedding, MongoDB converts it to a vector internally — you don't need to generate the query vectors yourself."
+Point out one detail of the query you just ran: `query` is a plain text string, not a vector. With auto embedding MongoDB converts it internally, so the application never generates query vectors.
 
 ### Step 6a — Explore Another Query
 
@@ -287,19 +265,7 @@ db.movies.aggregate([
 **Explain:**
 > "MongoDB applied the genre filter **before** computing similarity — narrowing the candidate pool first, then finding the most semantically similar ones within it. This is faster than filtering after the fact."
 
-Then show the query syntax:
-> "Here's what the filtered query looks like:
-> ```javascript
-> $vectorSearch: {
->   index: "quickstart_semantic",
->   path: "plot",
->   query: "a story about growing up",
->   filter: { genres: { $eq: "Drama" } },  // applied before similarity search
->   numCandidates: 150,
->   limit: 3
-> }
-> ```
-> The `filter` field accepts standard MongoDB query syntax — you can filter on any field you indexed as `type: filter`."
+Note that `filter` takes standard MongoDB query syntax and works on any field indexed as `type: filter`. Raising `numCandidates` (150 here versus 100 unfiltered) compensates for the narrowed pool.
 
 ### Step 8a — Bridge to Keyword / Hybrid
 
@@ -315,34 +281,17 @@ Use AskUserQuestion:
 
 ### Step 3a2 — Explain Manual Vector Search
 
-Tell the user:
+Tell the user the sample dataset already includes an `embedded_movies` collection with pre-computed vectors on every document, so no embedding API is needed. With manual vector search the application generates embeddings with a model of its choice (OpenAI, Cohere, Hugging Face) and stores them as a document field; MongoDB only does the similarity search. Show the document shape:
 
-> "Good news — the sample dataset actually includes a collection called `embedded_movies` that already has pre-computed vector embeddings stored on every document. So we can use this right now.
->
-> With manual vector search, your application generates embeddings using a model of your choice (for example, OpenAI, Cohere, or Hugging Face) and stores them as a field in each document. MongoDB handles the similarity search — you control the embedding step.
->
-> Here's what a document in `embedded_movies` looks like (simplified):
-> ```json
-> {
->   "title": "Toy Story",
->   "plot": "A cowboy doll is profoundly threatened...",
->   "plot_embedding": [0.0007, -0.0268, 0.0135, ...]  // 1536 numbers
-> }
-> ```
->
-> The index definition tells MongoDB the number of dimensions and similarity metric to use:
-> ```json
-> {
->   "fields": [
->     {
->       "type": "vector",
->       "path": "plot_embedding",
->       "numDimensions": 1536,
->       "similarity": "cosine"
->     }
->   ]
-> }
-> ```"
+```json
+{
+  "title": "Toy Story",
+  "plot": "A cowboy doll is profoundly threatened...",
+  "plot_embedding": [0.0007, -0.0268, 0.0135, ...]  // 1536 numbers
+}
+```
+
+Because the vectors are supplied rather than generated, the index definition must declare the dimension count and similarity metric itself — both are shown in Step 4a2 and must match the model that produced the vectors.
 
 ### Step 4a2 — Create Manual Vector Index
 
@@ -364,7 +313,7 @@ Use `create-index` to create a vectorSearch index on `sample_mflix.embedded_movi
 Name the index: `quickstart_manual`
 
 **While it builds, explain:**
-> "Unlike Automated Embedding, MongoDB isn't generating anything here — the embeddings are already stored in your documents. The index just organizes them into a structure that makes similarity lookups fast."
+> "The index organizes the embeddings that are already stored in your documents into a structure that makes similarity lookups fast."
 
 Wait for status `READY` with `collection-indexes`.
 
@@ -410,7 +359,7 @@ Display results in a table: Title | Score | Plot snippet. Exclude the source mov
 ### Step 6a2 — Bridge to Keyword / Hybrid
 
 Use AskUserQuestion:
-> "That's manual vector search live against real data. Want to also see keyword search and hybrid — where both approaches run together?"
+> "Do you want to also see keyword search and hybrid — where both approaches run together?"
 
 - **Yes** → proceed to Path B, then Path C
 - **No, I'm done** → skip to Wrap Up
@@ -471,18 +420,7 @@ Display results in a table: Title | Score | Plot snippet.
 **Explain:**
 > "MongoDB Search found movies where 'space' and 'adventure' appear across the title or plot — and ranked them by how relevant they are. The score reflects relevance, not just whether the word appeared."
 
-Then show the query syntax:
-> "Here's what keyword search looks like:
-> ```javascript
-> $search: {
->   index: "quickstart_text",
->   text: {
->     query: "space adventure",
->     path: ["title", "plot"]  // search across multiple fields at once
->   }
-> }
-> ```
-> Compare this to `$vectorSearch` — `$search` uses the `text` operator and works with exact words. `$vectorSearch` uses `query` and works with meaning."
+Contrast it with `$vectorSearch`: `$search` takes a `text` operator and matches words, `$vectorSearch` takes `query` and matches meaning. `path` accepts an array, so one `text` operator covers several fields at once.
 
 ### Step 5b — Try Fuzzy Matching
 
@@ -513,16 +451,7 @@ db.movies.aggregate([
 **Explain:**
 > "Both typos were tolerated — MongoDB allowed up to 1 character difference between the query and indexed text. This is what makes a search box feel forgiving and human."
 
-Then show the query syntax:
-> "One small addition to the keyword query:
-> ```javascript
-> text: {
->   query: "sapce adventre",
->   path: ["title", "plot"],
->   fuzzy: { maxEdits: 1 }  // allow up to 1 character difference per word
-> }
-> ```
-> `maxEdits: 2` would be more forgiving, but too loose — short words start matching things they shouldn't."
+`fuzzy: { maxEdits: 1 }` is the only addition to the previous query — one character of difference per word. `maxEdits: 2` is more forgiving but too loose in practice: short words start matching things they shouldn't.
 
 ### Step 6b — Try Autocomplete
 
@@ -553,7 +482,7 @@ Autocomplete needs `title` indexed as an `autocomplete` type, which `quickstart_
 }
 ```
 
-Then query it with `index: "quickstart_autocomplete"` instead of `quickstart_text`. This is a perfectly good pattern in its own right — a small, purpose-built autocomplete index stays fast and can be tuned independently of your main relevance index. Just remember it counts against the tier index caps in Step 3a.3 ①. The standalone script offered at Wrap Up uses this second-index route too, so it reuses whatever these steps created rather than requiring a different definition.
+Then query it with `index: "quickstart_autocomplete"` instead of `quickstart_text`. It counts against the tier index caps in Step 3a.3 ①. The Wrap Up script uses this second-index route too, so it reuses whatever these steps created.
 
 Tell the user which route you took and why.
 
@@ -580,18 +509,7 @@ db.movies.aggregate([
 **Explain:**
 > "Three characters returned relevant title suggestions instantly. Autocomplete pre-indexes word fragments — it's purpose-built for speed so it can respond as fast as a user types."
 
-Then show the query syntax:
-> "Autocomplete uses a different operator inside `$search`:
-> ```javascript
-> $search: {
->   index: "quickstart_autocomplete",   // the index where title is an autocomplete field
->   autocomplete: {
->     query: "inc",   // partial input from the user
->     path: "title"   // field must be indexed as autocomplete type
->   }
-> }
-> ```
-> This is what you'd call on every keystroke in a search box — it's designed to be that fast."
+Note the operator change: `autocomplete` replaces `text` inside `$search`, `query` holds the partial input, and `path` must point at a field indexed as `autocomplete` type — this is the call a search box makes on every keystroke.
 
 ### Step 7b — Bridge to Hybrid
 
@@ -670,25 +588,7 @@ Display results.
 **Explain:**
 > "MongoDB ran two searches — one by meaning, one by keywords — then merged them using an algorithm called **Reciprocal Rank Fusion**. Movies that ranked highly in **both** searches scored highest overall. The weights (70% semantic, 30% keyword) control how much each signal matters. You can tune these per query type."
 
-Then show the query syntax:
-> "Hybrid search uses `$rankFusion` to run multiple pipelines and merge them:
-> ```javascript
-> $rankFusion: {
->   input: {
->     pipelines: {
->       semanticPipeline: [ { $vectorSearch: { ... } } ],  // semantic search
->       keywordPipeline:  [ { $search: { ... } }, { $limit: 20 } ]  // keyword search
->     }
->   },
->   combination: {
->     weights: {
->       semanticPipeline: 0.7,  // 70% semantic
->       keywordPipeline: 0.3    // 30% keyword
->     }
->   }
-> }
-> ```
-> Each pipeline runs independently, one after another rather than in parallel — MongoDB merges the ranked results at the end. You can have more than two pipelines, and weight them however fits your use case."
+Two facts about the pipeline worth stating: the sub-pipelines run one after another rather than in parallel, with the ranked results merged at the end, and `$rankFusion` is not limited to two — any number of pipelines can be weighted to fit the use case.
 
 ### Step 9c — Try Different Weights (Optional)
 
@@ -706,7 +606,7 @@ Congratulate the user. Use AskUserQuestion:
 > "Want a standalone Python script with everything you just ran — index creation, semantic search, keyword search, and hybrid search?"
 
 If yes, copy `scripts/quickstart_complete.py` from this skill directory into the user's working directory, then tell the user:
-> "Your script is at `<destination path>`. Set `MONGODB_URI` to your connection string and it runs against `sample_mflix.movies` — it reads `MDB_MCP_CONNECTION_STRING` too, so if that is already exported for the MCP server, it needs nothing else. To point it at your own data, change the `DB_NAME` and `COLLECTION_NAME` variables at the top — and because the script hard-codes the sample schema (`plot`, `genres`, and `title`), also update the index definitions, the `$project` stages, and the query strings to match your own field names."
+> "Your script is at `<destination path>`. Set `MONGODB_URI` to your connection string and it runs against `sample_mflix.movies` — it reads `MDB_MCP_CONNECTION_STRING` too if that is already exported for the MCP server. To point it at your own data, change the `DB_NAME` and `COLLECTION_NAME` variables at the top — and because the script hard-codes the sample schema (`plot`, `genres`, and `title`), also update the index definitions, the `$project` stages, and the query strings to match your own field names."
 
 ## Troubleshooting
 
@@ -716,8 +616,7 @@ If yes, copy `scripts/quickstart_complete.py` from this skill directory into the
 
 **Deployment turns out not to be Atlas cloud mid-walkthrough**
 - Stop rather than improvise a substitute. The Atlas UI sample-data loader is unavailable, and `autoEmbed` index creation fails without the right image or MongoDB version, `mongot`, and Voyage AI keys.
-- On Atlas Local, do not offer to start a local deployment — they have one. Offer an Atlas cloud cluster, or the main `SKILL.md` workflow against the local deployment with manual embeddings.
-- On self-managed, give the user the two options in Step 0.2: move to an Atlas cloud cluster, or leave the walkthrough and build search on their own data through the main `SKILL.md` workflow with manual embeddings.
+- Give the user the two options in Step 0.2: move to an Atlas cloud cluster, or leave the walkthrough and build search on their own data through the main `SKILL.md` workflow with manual embeddings. Do not offer to start a local deployment — they are already running MongoDB somewhere.
 
 **Index stuck in Building state**
 - Normal for large collections — check status with `collection-indexes`
