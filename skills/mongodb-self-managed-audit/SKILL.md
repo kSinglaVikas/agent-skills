@@ -1,11 +1,13 @@
 ---
-name: mongodb-production-notes
+name: mongodb-self-managed-audit
 description: >
-  Production readiness audit for self-managed MongoDB 7.0, 8.0, 8.3 and 9.0
-  Enterprise Advanced on Linux, scored against MongoDB production notes. Use when auditing a
-  deployment before or after installing mongod, and when asked about a single
-  check area (transparent huge pages, NUMA, ulimits, kernel tunables, WiredTiger
-  cache, TCMalloc), which are subsets of this checklist.
+  Production readiness audit for self-managed MongoDB Enterprise Advanced
+  (7.0, 8.0, 8.3, 9.0) on Linux hosts the user controls, scored against
+  MongoDB production notes. Use when auditing a self-managed MongoDB host
+  before or after installing MongoDB, or when the user asks about a single
+  check area (THP, NUMA, ulimits, kernel tunables, WiredTiger cache, TCMalloc)
+  on a self-managed Enterprise Advanced host. Do not use for MongoDB Atlas,
+  Community Edition, non-Linux hosts, or general performance tuning.
 metadata:
   version: 1.0.0
 license: Apache-2.0

@@ -63,7 +63,7 @@ VALIDATOR_STATUS=$?
 
 # Run any self-tests the validated skills ship. These assert skill logic the
 # validator cannot see, such as the kernel compatibility matrix in
-# mongodb-production-notes.
+# mongodb-self-managed-audit.
 TEST_STATUS=0
 while IFS= read -r test_file; do
   echo ""

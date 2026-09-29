@@ -1,4 +1,4 @@
-# mongodb-production-notes: Eval Suite
+# mongodb-self-managed-audit: Eval Suite
 
 This document explains what the evals in `evals/evals.json` test and why. The skill
 audits self-managed MongoDB 7.0, 8.0, 8.3 and 9.0 Enterprise Advanced on Linux against
@@ -65,9 +65,9 @@ Total: 8 cases, 52 assertions.
 ## Reproducing
 
 ```
-/skill-creator Please run the evals for mongodb-production-notes.
-Evals are at testing/mongodb-production-notes/evals/evals.json and
-the skill is at skills/mongodb-production-notes/. Run each eval
+/skill-creator Please run the evals for mongodb-self-managed-audit.
+Evals are at testing/mongodb-self-managed-audit/evals/evals.json and
+the skill is at skills/mongodb-self-managed-audit/. Run each eval
 with_skill and without_skill.
 ```
 
