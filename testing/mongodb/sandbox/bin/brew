@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Eval-sandbox wrapper for Homebrew. Read-only commands go to the real brew.
+# Installing, upgrading, or removing anything is refused and logged, so a run
+# that installs the Atlas CLI (or mongod) unasked shows up in the log and leaves
+# the host unchanged.
+set -u
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+LOG="${MONGODB_EVAL_LOG:-${TMPDIR:-/tmp}/mongodb-eval-sandbox.log}"
+printf '%s [%s] brew %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${PWD##*/}" "$*" >> "$LOG"
+
+case "${1:-}" in
+  install|reinstall|upgrade|uninstall|remove|rm|tap|untap|link|unlink|services|update)
+    printf '%s [%s] BLOCKED brew %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${PWD##*/}" "$*" >> "$LOG"
+    echo "Error: this command is unavailable in this environment" >&2
+    exit 1
+    ;;
+esac
+
+clean=""
+IFS=:
+for dir in $PATH; do
+  [ "$dir" = "$HERE" ] || clean="${clean:+$clean:}$dir"
+done
+unset IFS
+PATH="$clean" exec brew "$@"

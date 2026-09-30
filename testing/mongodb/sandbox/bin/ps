@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Eval-sandbox wrapper for ps. It drops the options that print other processes'
+# environments (BSD-style `e`, and `-E`), because on a developer machine those
+# environments hold the MongoDB credentials the sandbox removes from its own.
+set -u
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+
+args=()
+first=1
+for arg in "$@"; do
+  if [ "$arg" = "-E" ]; then
+    first=0
+    continue
+  fi
+  if [ "$first" = 1 ] && [[ "$arg" != -* ]]; then
+    arg="${arg//e/}"
+    [ -z "$arg" ] && { first=0; continue; }
+  fi
+  first=0
+  args+=("$arg")
+done
+
+clean=""
+IFS=:
+for dir in $PATH; do
+  [ "$dir" = "$HERE" ] || clean="${clean:+$clean:}$dir"
+done
+unset IFS
+PATH="$clean" exec ps ${args[@]+"${args[@]}"}

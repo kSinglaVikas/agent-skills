@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Eval-sandbox wrapper for npx. The `skills` CLI behaves as if it were not
+# installable here, so hand-off cases exercise the skill's fallback (fetch the
+# child skill from GitHub) and nothing is written to the real skill directories.
+# Every other npx call goes to the real npx unchanged.
+set -u
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+LOG="${MONGODB_EVAL_LOG:-${TMPDIR:-/tmp}/mongodb-eval-sandbox.log}"
+
+pkg=""
+for arg in "$@"; do
+  case "$arg" in
+    -*) ;;
+    *) pkg="$arg"; break ;;
+  esac
+done
+
+if [ "$pkg" = skills ] || [[ "$pkg" == skills@* ]]; then
+  printf '%s [%s] npx %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${PWD##*/}" "$*" >> "$LOG"
+  echo "npm error could not determine executable to run" >&2
+  exit 1
+fi
+
+# Hand off with this directory dropped from PATH, so nothing re-resolves back here.
+clean=""
+IFS=:
+for dir in $PATH; do
+  [ "$dir" = "$HERE" ] || clean="${clean:+$clean:}$dir"
+done
+unset IFS
+PATH="$clean" exec npx "$@"

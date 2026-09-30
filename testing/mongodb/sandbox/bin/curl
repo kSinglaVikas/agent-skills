@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# Eval-sandbox wrapper for curl. Requests to the Ephemeral Cluster endpoints get
+# a scripted response and never reach Atlas; every other request goes to the real
+# curl unchanged.
+#
+# Create responses depend on EC_STUB_MODE (set per sandbox group):
+#   normal       -> 201 with status PROVISIONING; the status endpoint reports
+#                   ACTIVE once EC_STUB_READY_SECONDS (default 6) have passed
+#   capped       -> 429 with no retry-after (hourly cap reached)
+#   ratelimited  -> 429 with retry-after: 5 on every call (per-IP limit)
+set -u
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+LOG="${MONGODB_EVAL_LOG:-${TMPDIR:-/tmp}/mongodb-eval-sandbox.log}"
+
+# Drop this directory from PATH before handing off: some machines put a curl
+# wrapper ahead of the system curl that re-resolves curl from PATH, which would
+# otherwise land back here and loop.
+real_curl() {
+  local IFS=: dir clean=""
+  for dir in $PATH; do
+    [ "$dir" = "$HERE" ] || clean="${clean:+$clean:}$dir"
+  done
+  PATH="$clean" exec curl "$@"
+}
+
+case " $* " in
+  *ephemeralClusters*) ;;
+  *) real_curl "$@" ;;
+esac
+
+printf '%s [%s] curl %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${PWD##*/}" "$*" >> "$LOG"
+
+method="GET" body="" include=0 fail=0 outfile="" writeout="" dumpfile="" url=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -X|--request) method="$2"; shift ;;
+    -d|--data|--data-raw|--data-binary|--json) body="$2"; [ "$method" = GET ] && method=POST; shift ;;
+    -o|--output) outfile="$2"; shift ;;
+    -w|--write-out) writeout="$2"; shift ;;
+    -D|--dump-header) dumpfile="$2"; shift ;;
+    -H|--header|-u|--user|-A|--user-agent|-m|--max-time|--connect-timeout|-e|--referer) shift ;;
+    -i|--include) include=1 ;;
+    -f|--fail) fail=1 ;;
+    --*) ;;
+    -*) case "$1" in *i*) include=1 ;; esac; case "$1" in *f*) fail=1 ;; esac ;;
+    *) url="$1" ;;
+  esac
+  shift
+done
+case "$body" in @*) body="$(cat "${body#@}" 2>/dev/null)" ;; esac
+
+MODE="${EC_STUB_MODE:-normal}"
+READY_AFTER="${EC_STUB_READY_SECONDS:-6}"
+# Each created cluster gets its own id and a creation timestamp here, so parallel
+# runs don't share state and the status endpoint can move PROVISIONING -> ACTIVE.
+STATE_DIR="$LOG.ec"
+mkdir -p "$STATE_DIR"
+
+expires="$(date -u -v+48H +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -d '+48 hours' +%Y-%m-%dT%H:%M:%SZ)"
+retry_after=""
+
+cluster_json() {
+  # $1 = cluster id, $2 = status, $3 = password as shown
+  cat <<EOF
+{"connectionString":"mongodb+srv://ephemeral-user:$3@cluster0.evalsbx.mongodb.net/","clusterId":"$1","claimUrl":"https://account.mongodb.com/account/register?claimId=eval-claim-3f9c2a","status":"$2","expiresAt":"$expires","termsOfService":"By provisioning this cluster you agree to the MongoDB Atlas Terms of Service."}
+EOF
+}
+
+if [ "$method" = POST ] && [[ "$url" == *ephemeralClusters:create* ]]; then
+  case "$MODE" in
+    capped)
+      status=429
+      resp='{"detail":"Ephemeral cluster creation limit reached. Try again later.","error":429,"errorCode":"RATE_LIMITED","reason":"Too Many Requests"}'
+      ;;
+    ratelimited)
+      status=429
+      retry_after=5
+      resp='{"detail":"Too many requests from this IP address. Retry after the interval in the retry-after header.","error":429,"errorCode":"RATE_LIMITED","reason":"Too Many Requests"}'
+      ;;
+    *)
+      status=201
+      cluster_id="66e1$(od -An -N10 -tx1 /dev/urandom | tr -d ' \n')"
+      date +%s > "$STATE_DIR/$cluster_id"
+      resp="$(cluster_json "$cluster_id" PROVISIONING EVALFAKEPW7f3a)"
+      ;;
+  esac
+elif [[ "$url" =~ ephemeralClusters/([0-9a-f]{24}) ]] && [ -f "$STATE_DIR/${BASH_REMATCH[1]}" ]; then
+  cluster_id="${BASH_REMATCH[1]}"
+  created="$(cat "$STATE_DIR/$cluster_id")"
+  if [ $(( $(date +%s) - created )) -ge "$READY_AFTER" ]; then state=ACTIVE; else state=PROVISIONING; fi
+  status=200
+  resp="$(cluster_json "$cluster_id" "$state" '<password>')"
+else
+  status=404
+  resp='{"detail":"Not found","error":404,"reason":"Not Found"}'
+fi
+
+headers="HTTP/2 $status"$'\r\n'"content-type: application/json"$'\r\n'
+[ -n "$retry_after" ] && headers+="retry-after: $retry_after"$'\r\n'
+headers+=$'\r\n'
+
+# "-" means stdout for both -D and -o, as in real curl.
+[ "$dumpfile" = "-" ] && dumpfile=/dev/stdout
+[ "$outfile" = "-" ] && outfile=""
+[ -n "$dumpfile" ] && printf '%s' "$headers" > "$dumpfile"
+if [ "$fail" = 1 ] && [ "$status" -ge 400 ]; then
+  echo "curl: (22) The requested URL returned error: $status" >&2
+  exit 22
+fi
+{
+  [ "$include" = 1 ] && printf '%s' "$headers"
+  printf '%s\n' "$resp"
+} > "${outfile:-/dev/stdout}"
+if [ -n "$writeout" ]; then
+  out="${writeout//%\{http_code\}/$status}"
+  out="${out//%\{response_code\}/$status}"
+  printf '%b' "$out"
+fi
+exit 0

@@ -1,0 +1,6 @@
+customer_id,full_name,email,phone,date_of_birth,street_address,postcode
+C-10001,Maria Ortega,maria.ortega@example.com,+1-555-0142,1984-03-17,41 Elm Street,02139
+C-10002,James Whitfield,j.whitfield@example.com,+1-555-0178,1991-11-02,9 Harbor Road,94107
+C-10003,Aiko Tanaka,aiko.t@example.com,+1-555-0113,1977-06-28,220 Pine Avenue,60614
+C-10004,Samuel Okafor,s.okafor@example.com,+1-555-0199,1988-01-09,15 Maple Court,73301
+C-10005,Priya Raman,priya.raman@example.com,+1-555-0157,1995-09-21,7 Birch Lane,98101
