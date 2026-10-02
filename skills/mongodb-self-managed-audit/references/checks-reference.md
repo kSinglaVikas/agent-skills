@@ -120,9 +120,11 @@ worse than none, because it silently reasserts it on every boot.
 | Check | Expected | Status rule |
 |---|---|---|
 | NUMA in BIOS | Disabled where the platform allows | INFO |
-| `vm.zone_reclaim_mode` | 0 | FAIL if non-zero on a NUMA system |
-| mongod launched under `numactl --interleave=all` | Yes | FAIL when NUMA is present and interleaving is absent |
-| `numad` daemon | Stopped | FAIL if running |
+| `numactl` installed | Yes | FAIL when NUMA is present and it is missing; the remaining NUMA checks still run |
+| `vm.zone_reclaim_mode` | 0 | FAIL if non-zero on a NUMA system. UNKNOWN when unreadable |
+| Running mongod and mongos use an interleave memory policy | Yes | Read from `/proc/<pid>/numa_maps`. FAIL when no region is interleaved. UNKNOWN when unreadable. numactl execs the program, so `ps` never shows numactl and is not evidence |
+| Instances start through `numactl --interleave=all` | Yes | systemd: FAIL when a `mongo*` unit's ExecStart lacks it. SysV init: PASS, the default MongoDB init script does it. Other init systems: UNKNOWN, check the custom scripts |
+| `numad` daemon | Not running and not enabled at boot | 8.0 and later: FAIL if running or enabled. 7.0: WARN, advisory only, since the 7.0 notes do not mention numad |
 | Windows | Memory interleaving enabled in BIOS | INFO |
 
 ## Filesystem & Storage
