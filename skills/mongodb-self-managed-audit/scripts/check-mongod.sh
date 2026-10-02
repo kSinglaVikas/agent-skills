@@ -42,7 +42,12 @@ if command -v mongod &>/dev/null; then
     DETECTED_MM="$(echo "$MONGO_VER" | cut -d. -f1-2)"
     if [ "$DETECTED_MM" != "$MONGO_VERSION" ]; then
       echo "$WARN mongod-version-match: installed mongod is $MONGO_VER but the audit was run with --version $MONGO_VERSION"
-      echo "       Fix: re-run with --version $DETECTED_MM so the checks use the right expected values"
+      case " $MONGO_SUPPORTED_VERSIONS " in
+        *" $DETECTED_MM "*)
+          echo "       Fix: re-run with --version $DETECTED_MM so the checks use the right expected values" ;;
+        *)
+          echo "       Fix: $DETECTED_MM is not covered by this checklist ($MONGO_SUPPORTED_VERSIONS); results scored against $MONGO_VERSION do not apply. Upgrade to a covered release, then re-run with the matching --version" ;;
+      esac
     else
       echo "$PASS mongod-version-match: installed mongod $MONGO_VER matches the audited version $MONGO_VERSION"
     fi

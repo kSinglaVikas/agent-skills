@@ -10,7 +10,7 @@ and telling apart findings that are real, not applicable, or unknown.
 
 ```
 evals/
-  evals.json    8 eval cases (prompt, fixture files, expected_output, expectations)
+  evals.json    10 eval cases (prompt, fixture files, expected_output, expectations)
   assets/       host check output and config fixtures attached to the prompts
 ```
 
@@ -31,19 +31,22 @@ skill's `scripts/run-all-checks.sh`. Evals 3 and 4 use raw command output instea
 | 6 | container-node-scoping-unknown | 8.3, inside a Kubernetes pod | Unreadable `/sys` and `/proc` values are UNKNOWN, not WARN. THP, swappiness and zone_reclaim_mode belong to the worker node. Only `bind_ip 0.0.0.0` is actionable from this run. | 5 |
 | 7 | broad-coverage-all-categories | 8.0.25, Ubuntu 24.04 on Azure, pre-install, unprivileged | Full prioritised remediation list across ulimits, network, kernel, THP, storage, clock, NUMA and security. Absent mongod is expected before install. Kernel 6.17 is below 6.19. | 11 |
 | 8 | amazonlinux-thp-madvise-selinux-permissive | 8.0.25, Amazon Linux 2023 EC2, pre-install | THP `madvise` is WARN on 8.0+, SELinux Permissive is a non-blocking WARN, and 0.8 GB RAM is the real problem because the WiredTiger cache falls to the 0.256 GB floor. Kernel 6.18.48 is one minor version below the boundary. | 10 |
+| 9 | 60-out-of-scope-rescored-as-70 | 6.0.19, RHEL 8.10, run forced to `--version 7.0` | Prerequisite stop rule. 6.0 is not a covered version, so the forced 7.0 run is not evidence of readiness. Model must refuse sign-off, cite the 6.0 end of life, require the upgrade before go-live, describe the one-major-at-a-time path through 7.0, and offer a re-audit afterwards. | 8 |
+| 10 | 70-host-built-from-80-golden-image | 7.0.21, RHEL 9.4, run with `--version 8.0` | Inverse of eval 1. A golden image tuned for 8.0 passes an 8.0-scored run, but on 7.0 THP `always` and defrag `defer+madvise` are FAILs, `max_ptes_none` and `overcommit_memory` do not apply, and the tuned profile reasserts the wrong values on boot. The version-mismatch WARN invalidates the run. | 8 |
 
-Total: 8 cases, 52 assertions.
+Total: 10 cases, 68 assertions.
 
 ## Coverage by theme
 
 | Theme | Cases |
 | --- | --- |
-| THP guidance flip at 8.0 (`never` before 8.0, `always` from 8.0) | 1, 2, 5, 8 |
+| THP guidance flip at 8.0 (`never` before 8.0, `always` from 8.0) | 1, 2, 5, 8, 10 |
 | Kernel 6.19 TCMalloc startup guard and which releases carry the narrowed version | 1, 2, 3, 5, 7, 8 |
 | WiredTiger cache sizing (mutually exclusive settings, ceiling, floor, cgroup limit) | 4, 8 |
 | SELinux and server-side JavaScript | 4, 8 |
 | UNKNOWN vs WARN vs not applicable | 4, 6, 7 |
 | Container and Kubernetes scoping | 6 |
+| Version prerequisites (unsupported version, `--version` mismatch with the installed binary) | 9, 10 |
 | Full-category sweep (ulimits, network, kernel, storage, clock, NUMA) | 7, 8 |
 
 ## Design notes

@@ -18,8 +18,9 @@ license: Apache-2.0
 Expected values come from the production notes, current release first:
 
 - https://www.mongodb.com/docs/v9.0/administration/production-notes/ (9.0)
-- https://www.mongodb.com/docs/manual/administration/production-notes/ (8.3)
+- https://www.mongodb.com/docs/v8.3/administration/production-notes/ (8.3)
 - https://www.mongodb.com/docs/v8.0/administration/production-notes/ (8.0)
+- https://www.mongodb.com/docs/v7.0/administration/production-notes/ (7.0)
 
 ## Model
 
@@ -41,6 +42,21 @@ Resolve all four before the first check. Ask while any one is unresolved.
 2. Shell access to the target host: local, SSH, or an open session.
 3. Linux target. The scripts read `/proc`, `/sys`, and `sysctl`.
 4. Privilege level: root, sudo, or unprivileged. Record it in the report.
+
+If a prerequisite cannot be met, stop or narrow the run as follows:
+
+- Version outside 7.0, 8.0, 8.3 or 9.0 (for example 6.0 or earlier): do not run
+  the checks. Tell the user the version is not covered by this audit, recommend
+  upgrading to a supported release, and point them to the MongoDB support
+  lifecycle (https://www.mongodb.com/legal/support-policy/lifecycles) or their
+  MongoDB account team.
+- Atlas or Community Edition: do not run the checks. This audit covers
+  self-managed Enterprise Advanced only.
+- Non-Linux target: do not run the checks. The scripts depend on Linux interfaces.
+- No shell access: do not guess values. Offer the user the command to run
+  themselves (Workflow step 2) and score the output they paste back.
+- Unprivileged run: continue. Checks that need root report UNKNOWN; list them in
+  the report with a re-run-with-sudo note.
 
 Audit only the host the user named as the target.
 

@@ -143,6 +143,46 @@
         "Notes that the processes limit is already unlimited on this host, rather than repeating generic nproc advice",
         "Recommends a larger instance before production rather than declaring the host ready once THP and SELinux are addressed"
       ]
+    },
+    {
+      "id": 9,
+      "name": "60-out-of-scope-rescored-as-70",
+      "_note": "Tests the prerequisite stop rule for an unsupported version. The fixture shows the suite rejecting --version 6.0, then a re-run forced to --version 7.0 on a 6.0.19 binary. Everything except the version lines passes, which invites a 'sign off the rest' answer.",
+      "prompt": "Pre go-live check on a self-managed MongoDB Enterprise replica set on RHEL 8.10. The nodes run 6.0.19. Your script refused --version 6.0, so we re-ran it with --version 7.0 since that is the closest one it accepts. Output from the primary attached. Apart from the version lines everything is green, and we already have the upgrade booked for Q1. Can you sign off the rest of this audit as production-ready so we can go live next week and deal with the version later?",
+      "files": [
+        "assets/host-output-60-run-as-70.txt"
+      ],
+      "expected_output": "Declines to sign off. MongoDB 6.0 is outside the versions this audit has expected values for (7.0, 8.0, 8.3, 9.0), so forcing --version 7.0 scores a 6.0.19 binary against the wrong expectations and the green results are not evidence of readiness for this deployment. States that 6.0 is end of life (July 31, 2025) and that going live on it means running an unsupported release. Recommends upgrading before go-live rather than in Q1, notes that a 6.0 deployment upgrades one major release at a time with 7.0 as the next step, and points to the MongoDB lifecycle schedule or the MongoDB account team. Offers to run the full audit once the nodes are on a covered release, with --version matching the installed binary.",
+      "expectations": [
+        "Refuses to certify the host or the remaining checks as production-ready",
+        "Explains that the --version 7.0 re-run grades a 6.0.19 binary against another release's expected values, so its PASS results cannot stand in for an audit of this deployment",
+        "States that MongoDB 6.0 is past end of life, with July 31, 2025 as the date, and that going live on it means running an unsupported release",
+        "Advises completing the upgrade before go-live instead of deferring it to Q1",
+        "Describes the upgrade path as one major release at a time, moving to 7.0 first rather than jumping straight to 8.0 or later",
+        "Directs the team to the MongoDB lifecycle schedule or to their MongoDB account team for support status",
+        "Does not present a per-check PASS/WARN/FAIL scorecard for this host as the audit result",
+        "Offers to audit again after the upgrade, with the --version argument matching the installed mongod"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "70-host-built-from-80-golden-image",
+      "_note": "Inverse of eval 1 and complement to eval 2. A 7.0.21 node built from a golden image tuned for 8.0, audited with --version 8.0. The run is green apart from the version-mismatch WARN, but THP always and defrag defer+madvise are FAILs on 7.0, and the tuned profile reasserts them every boot.",
+      "prompt": "Our platform team builds every MongoDB host from one golden RHEL 9.4 image that follows the 8.0 production notes, including the THP settings. This new node joins a self-managed MongoDB 7.0.21 Enterprise replica set that will stay on 7.0 until next year. They ran the suite with --version 8.0 because that is what the image is certified against, and the only thing flagged is a version-mismatch warning they want to ignore. Output attached. Is this node ready to join the 7.0 replica set?",
+      "files": [
+        "assets/host-output-70-run-as-80-golden-image.txt"
+      ],
+      "expected_output": "Says the node is not ready. The run scored a 7.0.21 binary against 8.0 expectations, so the mismatch warning invalidates the green result rather than being ignorable. Re-scored for 7.0, THP enabled=always is a FAIL and defrag=defer+madvise is a FAIL, because 7.0 documents never for both. max_ptes_none=0 and vm.overcommit_memory=1 are not 7.0 checks, so they are not reported as passes that matter here. The tuned profile golden-mongodb-80 reasserts the wrong values on every boot, so the fix is a 7.0-specific tuned profile or image variant rather than a runtime echo. The TCMalloc and kernel 6.19 checks are 8.0-only; kernel 5.14 is fine and 7.0 is unaffected by the restriction anyway. Recommends re-running with --version 7.0 after the change.",
+      "expectations": [
+        "States the node is not ready to join the 7.0 replica set as configured",
+        "Treats the mongod-version-match warning as invalidating the whole run, not as a cosmetic warning to ignore",
+        "Classifies THP enabled=always on this 7.0.21 host as FAIL, contradicting the [PASS] in the output",
+        "Classifies defrag=defer+madvise as wrong for 7.0, where the documented value is never",
+        "Does not count khugepaged/max_ptes_none or vm.overcommit_memory as 7.0 passes, treating them as checks that apply from 8.0 on",
+        "Identifies the active tuned profile golden-mongodb-80 as the reason the wrong THP values come back after every reboot, and proposes a 7.0-specific tuned profile, image variant or systemd unit as the persistent fix",
+        "Notes the TCMalloc section and its kernel check are 8.0-only, and that 7.0 is not affected by the kernel 6.19 restriction",
+        "Recommends re-running the suite with --version 7.0 after the THP change before the node joins"
+      ]
     }
   ]
 }

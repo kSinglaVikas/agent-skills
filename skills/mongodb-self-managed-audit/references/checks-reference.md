@@ -3,8 +3,9 @@
 Sources:
 
 - 9.0: https://www.mongodb.com/docs/v9.0/administration/production-notes/
-- 8.3: https://www.mongodb.com/docs/manual/administration/production-notes/
+- 8.3: https://www.mongodb.com/docs/v8.3/administration/production-notes/
 - 8.0: https://www.mongodb.com/docs/v8.0/administration/production-notes/
+- 7.0: https://www.mongodb.com/docs/v7.0/administration/production-notes/
 - THP: https://www.mongodb.com/docs/manual/tutorial/transparent-huge-pages/
 
 Version columns below mean the MongoDB major version, not the kernel or OS
@@ -181,7 +182,7 @@ worse than none, because it silently reasserts it on every boot.
 | Check | Expected | Status rule |
 |---|---|---|
 | mongod running | Yes | When stopped, the scripts fall back to config files; findings remain valid |
-| mongod version | 7.0.x, 8.0.x or 8.3.x | FAIL on an end-of-life release |
+| mongod version | 7.0.x, 8.0.x, 8.3.x or 9.0.x | FAIL on an end-of-life release |
 | Authorization | `security.authorization` enabled | FAIL when disabled |
 | `bind_ip` | Not `0.0.0.0` unless deliberate | WARN when listening on all interfaces |
 | `storage.dbPath` | Contains only the configured engine's files | FAIL on mismatch |
