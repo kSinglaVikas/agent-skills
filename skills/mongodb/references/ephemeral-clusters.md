@@ -64,7 +64,7 @@ Returns the same field set as create, with one difference: **the `connectionStri
 
    If it's `PROVISIONING` (or `PAUSED`), the cluster isn't connectable yet — poll `GET /ephemeralClusters/{clusterId}` (the status endpoint above) until `status` is `ACTIVE`, waiting a few seconds between checks.
 
-   Don't loop indefinitely: if it hasn't gone `ACTIVE` after a handful of polls (~10s), tell the user it's still provisioning and stop rather than hammering the endpoint.
+   Don't loop indefinitely: if it hasn't gone `ACTIVE` after 10 seconds, tell the user it's still provisioning and stop rather than hammering the endpoint.
 
    Treat `429` and `500` from the status check the same as elsewhere — don't retry a `429` without a `retry-after`.
 
