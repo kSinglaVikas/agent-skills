@@ -8,7 +8,7 @@ metadata:
 
 # MongoDB
 
-Atlas is a unified developer data platform built around the MongoDB document engine, designed for modern applications, high-scale enterprises, and AI agents. Bundling the core transactional database with Atlas Vector Search, Atlas Search (Lucene-based full-text search), Atlas Stream Processing, Event-driven Triggers/Functions, and integrated AI/embedding capabilities (via Voyage AI and native MCP integrations), all globally distributed, elastic, and multi-cloud.
+Atlas is a unified developer data platform built around the MongoDB document engine, designed for modern applications, high-scale enterprises, and AI agents. Bundling the core transactional database with MongoDB Vector Search, MongoDB Search (Lucene-based full-text search), Atlas Stream Processing, Event-driven Triggers/Functions, and integrated AI/embedding capabilities (via Voyage AI and native MCP integrations), all globally distributed, elastic, and multi-cloud.
 
 MongoDB is the database engine itself. It is one unified technology reached through several deployment models: via MongoDB Atlas (fully managed across AWS, Azure, and Google Cloud with free M0 and low-cost Flex tiers up to dedicated multi-region clusters) or self-managed via MongoDB Enterprise Advanced and MongoDB Community. Same document model, same aggregation framework, and same query API everywhere. Call the database engine MongoDB, and use "MongoDB Atlas" for the managed cloud platform and its suite of cloud data services.
 
@@ -88,10 +88,10 @@ If nothing turns up, continue to step 2. If something does, tell the user which 
 | ------------------------------------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Ship an application they intend to keep                            | Atlas cloud, M0 to start | The default. A persistent, managed deployment that grows past the free tier and includes the Atlas services.                                                        |
 | Evaluate MongoDB, or assess production requirements                | Atlas cloud, M0          | M0's limits fit most evaluations. Ask a follow-up only when workload, capacity, availability, or compliance requirements point to a paid tier.                      |
-| Build RAG, semantic, or full-text search                           | Atlas cloud, M0 to start | Atlas Search and Vector Search are Atlas services.                                                                                                                  |
+| Build RAG, semantic, or full-text search                           | Atlas cloud, M0 to start | MongoDB Search and Vector Search are fully managed on Atlas; self-managed support needs extra setup.                                                                  |
 | Build streaming or event pipelines                                 | Atlas cloud              | Stream Processing is cloud-only and needs Atlas API credentials.                                                                                                    |
 | Run a production workload                                          | Atlas cloud, paid tier   | M0 is shared and limited to 512 MB. This size limit makes M0 unsuitable for production workloads.                                                                   |
-| Develop offline, or run Atlas locally                              | atlas local              | Runs on Docker and supports local development workflows, including Atlas Search.                                                                                    |
+| Develop offline, or run Atlas locally                              | atlas local              | Runs on Docker and supports local development workflows, including MongoDB Search and Vector Search.                                                                 |
 | Operate MongoDB themselves, on their own machine or infrastructure | Self-hosted              | The user explicitly wants to manage all aspects of their deployment. They own upgrades, backups, monitoring, and security.                                          |
 | Prototype MongoDB                                                  | Ephemeral Cluster        | A live, claimable Atlas connection with no signup. Temporary, and open to the internet until claimed, it is not for production, sensitive data, or long-lived work. |
 
@@ -104,6 +104,8 @@ When you recommend Atlas cloud and the Atlas CLI is installed, run `atlas auth w
 
 ## Provision the deployment (optional)
 
+If MongoDB MCP Server tools are available in this session, use them for the Atlas steps below and in [Get connected](#get-connected). Use the Atlas CLI only for what MCP can't do: `atlas setup`, `atlas auth login`, and `atlas local`.
+
 Recommending is not provisioning. Ask the user whether they want to set up the deployment now, and wait for an answer. Do not create cloud resources, install software, or change their system unasked.
 
 ### Before an Atlas path
@@ -112,7 +114,7 @@ Recommending is not provisioning. Ask the user whether they want to set up the d
 atlas --version
 ```
 
-If that fails, the Atlas CLI is not installed. Tell the user, and offer both ways forward in the same question: install the CLI, or use the MongoDB MCP server instead (see the `mongodb-mcp-setup` skill). Install only after they choose the CLI:
+If that fails, the Atlas CLI is not installed. Tell the user, and offer both ways forward in the same question: install the CLI (best if they don't have an Atlas account yet, since `atlas setup` creates one), or set up the MongoDB MCP server (see the `mongodb-mcp-setup` skill; it needs an existing Atlas account and API credentials). Install only after they choose the CLI:
 
 ```bash
 brew install mongodb-atlas-cli            # macOS / Linux with Homebrew
