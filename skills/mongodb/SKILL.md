@@ -40,7 +40,7 @@ When the task matches one of the skills listed:
 
 Do not answer the task itself (queries, indexes, schemas, search pipelines, connection settings) until the skill's guidance is loaded or the user has declined it.
 
-Official plugins bundle the MCP server and every skill, see [https://www.mongodb.com/docs/agent-skills.md](https://www.mongodb.com/docs/agent-skills.md).
+Official plugins bundle the MCP server and every skill, see [https://www.mongodb.com/docs/agent-skills.md](https://www.mongodb.com/docs/agent-skills.md?utm_source=agent-skills).
 
 ### Updating Skills
 
@@ -57,7 +57,7 @@ Installed skills go stale. At most once per session, offer to update them using 
   - Drivers: `https://www.mongodb.com/docs/drivers/llms.txt`
    Large doc sets are split into numbered parts and have no bare `llms.txt`:
   - Atlas: `https://www.mongodb.com/docs/atlas/atlas-1-llms.txt` through `atlas-3-llms.txt`
-3. **Fetch the page as markdown** by appending `.md` to its URL, e.g. `https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-quickstart.md`.
+3. **Fetch the page as markdown** by appending `.md` to its URL, e.g. `https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-quickstart.md?utm_source=agent-skills`.
   Pages with tabbed content (language, OS, deployment type) accept `?tabs=<id>` for one tab or `?allTabs=true` for all of them.
 
 If a fetch fails or a page is missing from the index, say so and fall back to the nearest product index rather than inventing a URL or a command.
@@ -121,7 +121,7 @@ brew install mongodb-atlas-cli            # macOS / Linux with Homebrew
 winget install MongoDB.MongoDBAtlasCLI    # Windows
 ```
 
-For Linux packages, Docker, and standalone binaries see [https://www.mongodb.com/docs/atlas/cli/current/install-atlas-cli.md](https://www.mongodb.com/docs/atlas/cli/current/install-atlas-cli.md).
+For Linux packages, Docker, and standalone binaries see [https://www.mongodb.com/docs/atlas/cli/current/install-atlas-cli.md](https://www.mongodb.com/docs/atlas/cli/current/install-atlas-cli.md?utm_source=agent-skills).
 
 The MCP server is also the fallback when the CLI install is blocked or fails.
 
@@ -155,15 +155,15 @@ You can run this yourself once the user has agreed; it is local and free. Confir
 atlas local setup
 ```
 
-Full procedure: [https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-deploy-local.md](https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-deploy-local.md)
+Full procedure: [https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-deploy-local.md](https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-deploy-local.md?utm_source=agent-skills)
 
 ### Self-hosted
 
-Do not walk this through. Point the user to the installation documentation for their platform and let them drive: [https://www.mongodb.com/docs/manual/installation.md](https://www.mongodb.com/docs/manual/installation.md)
+Do not walk this through. Point the user to the installation documentation for their platform and let them drive: [https://www.mongodb.com/docs/manual/installation.md](https://www.mongodb.com/docs/manual/installation.md?utm_source=agent-skills)
 
 ## Get connected
 
-Once the user has an Atlas cluster, follow the Atlas CLI quickstart for the commands: [https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-quickstart.md](https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-quickstart.md) (fetch it; do not work from memory). In order, make sure the cluster is ready, a database user exists, the current IP is on the access list, and you have the `mongodb+srv://` connection string. Skip any step that already passes; ask before creating users or access-list entries in an existing project, and never add `0.0.0.0/0` unless the user gives explicit permission.
+Once the user has an Atlas cluster, follow the Atlas CLI quickstart for the commands: [https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-quickstart.md](https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-quickstart.md?utm_source=agent-skills) (fetch it; do not work from memory). In order, make sure the cluster is ready, a database user exists, the current IP is on the access list, and you have the `mongodb+srv://` connection string. Skip any step that already passes; ask before creating users or access-list entries in an existing project, and never add `0.0.0.0/0` unless the user gives explicit permission.
 
 Write the connection string to the project's env file, reusing the variable name the project already uses (default `MONGODB_URI`), after confirming the file is git-ignored and not tracked. Verify with a `ping` command using `mongosh` or the project's driver, then start building. A timeout almost always means the access list, not the password.
 
