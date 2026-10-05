@@ -24,14 +24,22 @@ Expected values come from the production notes, current release first:
 
 ## Model
 
-Run this audit on Sonnet. `scripts/run-all-checks.sh` already tallies the
-statuses, so what the model contributes is judgment: choosing UNKNOWN over PASS
-when a read fails, scoping container findings to the node, and matching a
-remediation to the deployment. Haiku suits a single-script run where the user
-wants the output read back.
+Use a reasoning-capable model, for example Sonnet where it is available.
+`scripts/run-all-checks.sh` already tallies the statuses, so what the model
+contributes is judgment: choosing UNKNOWN over PASS when a read fails, scoping
+container findings to the node, and matching a remediation to the deployment. A
+smaller, faster model suits a single-script run where the user only wants the
+output read back.
 
 The customer-facing document is a separate deliverable. Produce this audit, then
-take the findings to `mongodb-ce-toolkit:mongodb-writeup`.
+hand the findings to a document-writing skill if one is available.
+
+## Read-only by default
+
+The audit reads and reports. It does not change the host. Do not apply a
+remediation, edit a config file, change a sysctl, or restart a service as part
+of the audit. Present each fix as a command for the user to run, and run it
+yourself only after the user explicitly approves that specific change.
 
 ## Prerequisites
 
