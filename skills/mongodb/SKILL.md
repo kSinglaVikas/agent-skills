@@ -133,7 +133,7 @@ atlas auth whoami 2>/dev/null
 - **Not authenticated**: the user signs in themselves. Wait for them to finish, then re-run `whoami`.
 - **Not authenticated and unable to sign in right now**: keep the recommendation from step 2. If Atlas cloud is the right deployment, say so and let them sign in later. Offer an Ephemeral Cluster only when the user wants to start building immediately — and tell them it can be claimed into an Atlas account afterward, so the work carries over. If they mention SSO or a federated organization, also give them the claim requirement from [Ephemeral Clusters](#ephemeral-clusters).
 
-### Atlas cloud
+#### Atlas Free, Flex or Dedicated cluster
 
 The user runs this, not you — it opens a browser and creates real cloud resources:
 
