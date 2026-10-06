@@ -48,15 +48,13 @@ Installed skills go stale. At most once per session, offer to update them using 
 
 ## Finding the right docs
 
-1. **Start at the top-level index**, which lists every docs page with its URL and a one-line description:
-  `https://www.mongodb.com/docs/llms.txt`
-2. **Narrow to a product index** when you already know the area:
-  - MCP Server: `https://www.mongodb.com/docs/mcp-server/llms.txt`
-  - MongoDB Vector Search: `https://www.mongodb.com/docs/vector-search/llms.txt`
-  - MongoDB Search: `https://www.mongodb.com/docs/search/llms.txt`
-  - Drivers: `https://www.mongodb.com/docs/drivers/llms.txt`
-   Large doc sets are split into numbered parts and have no bare `llms.txt`:
-  - Atlas: `https://www.mongodb.com/docs/atlas/atlas-1-llms.txt` through `atlas-3-llms.txt`
+1. **Pick an index.** Use the product index if you know the area. Otherwise, use the top-level index:
+   - Top-level (every page): `https://www.mongodb.com/docs/llms.txt`
+   - MCP Server: `https://www.mongodb.com/docs/mcp-server/llms.txt`
+   - MongoDB Vector Search: `https://www.mongodb.com/docs/vector-search/llms.txt`
+   - MongoDB Search: `https://www.mongodb.com/docs/search/llms.txt`
+   - Drivers: `https://www.mongodb.com/docs/drivers/llms.txt`
+   - Atlas: split into `https://www.mongodb.com/docs/atlas/atlas-1-llms.txt` through `atlas-3-llms.txt`; there is no bare `atlas/llms.txt`
 3. **Fetch the page as markdown** by appending `.md` to its URL, e.g. `https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-quickstart.md?utm_source=agent-skills`.
   Pages with tabbed content (language, OS, deployment type) accept `?tabs=<id>` for one tab or `?allTabs=true` for all of them.
 
