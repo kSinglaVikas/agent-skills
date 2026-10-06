@@ -147,7 +147,7 @@ Then continue in [Get connected](#get-connected).
 
 ### Local Atlas deployment
 
-You can run this yourself once the user has agreed; it is local and free. Confirm Docker is running first.
+Confirm Docker is running, then run the following command to create a local Atlas deployment.
 
 ```bash
 atlas local setup
