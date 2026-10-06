@@ -34,7 +34,7 @@ Never print environment variable values, not even to check them. To look for an 
 When the task matches one of the skills listed:
 
 1. Check whether that skill is already installed. If it is, load it.
-2. If it is missing, ask before installing it. A go-ahead the user already gave counts. Then run `npx skills add mongodb/agent-skills -s <name>` (`-g` global, `-y` non-interactive).
+2. If the skill is missing, ask the user for permission to install it. If the user grants permission, run `npx skills add mongodb/agent-skills -s <name>` (`-g` global, `-y` non-interactive) to install the skill with name `<name>`. 
 3. Only if the skills CLI is unavailable or fails, fetch the skill from [https://github.com/mongodb/agent-skills/tree/main/skills](https://github.com/mongodb/agent-skills/tree/main/skills).
 4. If the user declines, or a permission check blocks the install, stay here and fetch current docs via [Finding the right docs](#finding-the-right-docs). When it was blocked, say so, give the user the install command to run themselves, and do not fetch the skill another way.
 
