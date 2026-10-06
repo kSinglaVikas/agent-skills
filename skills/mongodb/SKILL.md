@@ -123,7 +123,7 @@ For Linux packages, Docker, and standalone binaries see [https://www.mongodb.com
 
 The MCP server is also the fallback when the CLI install is blocked or fails.
 
-Then check credentials, without printing secrets:
+Then check whether the Atlas CLI is signed in. This command prints `Logged in as …` when the CLI is signed in, and nothing otherwise:
 
 ```bash
 atlas auth whoami 2>/dev/null
