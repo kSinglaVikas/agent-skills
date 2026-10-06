@@ -169,7 +169,7 @@ Write the connection string to the project's env file, reusing the variable name
 
 Inform the user that this feature is in Public Preview. Provisioning returns a connection string and a claim URL. The deployment pauses at expiresAt (about 48 hours if unclaimed) and is deleted seven days after creation unless it is claimed. Tell the user to claim it to retain their work, and never put sensitive or production data on it before claiming. Claiming into an existing organization requires the Organization Owner role there, which users in federated (SSO) organizations often lack.
 
-If the user wants an Ephemeral Cluster, read references/ephemeral-clusters.md before provisioning.
+To provision an Ephemeral cluster, read `references/ephemeral-clusters.md`.
 
 ## Gotchas
 
