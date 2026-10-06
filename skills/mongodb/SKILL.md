@@ -155,7 +155,7 @@ atlas local setup
 
 Full procedure: [https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-deploy-local.md](https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-deploy-local.md?utm_source=agent-skills)
 
-### Self-hosted
+#### Self-managed deployment
 
 Do not walk this through. Point the user to the installation documentation for their platform and let them drive: [https://www.mongodb.com/docs/manual/installation.md](https://www.mongodb.com/docs/manual/installation.md?utm_source=agent-skills)
 
