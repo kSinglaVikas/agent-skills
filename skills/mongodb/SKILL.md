@@ -47,7 +47,7 @@ Official plugins bundle the MCP server and every skill, see [https://www.mongodb
 Installed skills go stale. At most once per session, offer to update them using the same method that installed them, and update only if the user agrees. For the skills CLI that is `npx skills update`. Plugin update behavior is platform-specific, consult the plugin manager's documentation rather than assuming automatic updates.
 
 ## Finding the right docs
-
+When you need MongoDB docs that this skill doesn't link to directly, find pages through the `llms.txt` indexes below. Each index lists every page's URL with a one-line description to compare against the user's task.
 1. **Pick an index.** Use the product index if you know the area. Otherwise, use the top-level index:
    - Top-level (every page): `https://www.mongodb.com/docs/llms.txt`
    - MCP Server: `https://www.mongodb.com/docs/mcp-server/llms.txt`
